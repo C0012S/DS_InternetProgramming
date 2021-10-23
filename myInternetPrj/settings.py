@@ -108,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Seoul'
+TIME_ZONE = 'Asia/Seoul'  #UTC - 그리니치 표준시, Asia/Seoul - 서울 기준
 
 USE_I18N = True
 
