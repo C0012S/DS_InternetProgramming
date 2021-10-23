@@ -1,11 +1,14 @@
 from django.test import TestCase, Client
 from bs4 import BeautifulSoup
+from django.contrib.auth.models import User
 from .models import Post
 
 # Create your tests here.
 class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pip list
     def setUp(self):
         self.client = Client()
+        self.user_james = User.objects.create_user(username='James', password='somepassword')
+        self.user_trump = User.objects.create_user(username='Trump', password='somepassword')
 
     def navbar_test(self, soup):
         # 네비게이션바가 있다  # 포스트목록과 같은 네비게이션바가 있는가
@@ -43,11 +46,13 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         # 포스트(게시물)이 2개 존재하는 경우
         post_001 = Post.objects.create(
             title = '첫 번째 포스트입니다.',
-            content = 'Hello World!!! We are the world...'
+            content = 'Hello World!!! We are the world...',
+            author = self.user_james
         )
         post_002 = Post.objects.create(
             title = '두 번째 포스트입니다.',
-            content = '1등이 전부가 아니잖아요'
+            content = '1등이 전부가 아니잖아요',
+            author = self.user_trump
         )
         self.assertEqual(Post.objects.count(), 2)
         # 목록페이지를 새롭게 불러와서
@@ -59,12 +64,15 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         self.assertIn(post_001.title, main_area.text)
         self.assertIn(post_002.title, main_area.text)
         self.assertNotIn('아직 게시물이 없습니다.', main_area.text)
+        self.assertIn(self.user_james.username.upper(), main_area.text) #포스트에 author로 james와 trump가 잘 입력되어 있는지 확인(upper로 되어진 내용이 main_area 영역의 text에 포함되는지 테스트)
+        self.assertIn(self.user_trump.username.upper(), main_area.text)
 
     def test_post_detail(self):
         # 포스트 하나
         post_001 = Post.objects.create(
             title = '첫 번째 포스트입니다.',
-            content = 'Hello World!!! We are the world...'
+            content = 'Hello World!!! We are the world...',
+            author = self.user_james
         )
         # 이 포스트의 url이 /blog/1
         self.assertEqual(post_001.get_absolute_url(), '/blog/1')
@@ -85,3 +93,5 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         # 아직 작성중
         # 포스트의 내용이 있는가
         self.assertIn(post_001.content, post_area.text)
+
+        self.assertIn(self.user_james.username.upper(), post_area.text)

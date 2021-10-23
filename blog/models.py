@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User #장고가 제공해 주고 있는 User 모델
 import os
 
 # Create your models here.
@@ -13,10 +14,11 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    #author
+    author = models.ForeignKey(User, null=True, on_delete=models.SET_NULL) #User가 삭제되었을 때 Post의 author를 NULL 처리 -> author가 NULL이 허용된다는 설정 필요 : null=True  #on_delete=models.CASCADE : User가 삭제되었을 때 Post의 내용도 같이 삭제
 
     def __str__(self):
-        return f'[{self.pk}]{self.title}'
+        #return f'[{self.pk}]{self.title}'
+        return f'[{self.pk}]{self.title} :: {self.author}'
 
     def get_absolute_url(self): #self는 레코드 자기 자신을 의미하는 것
         return f'/blog/{self.pk}'
