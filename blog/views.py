@@ -1,17 +1,31 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 
-from . models import Post
+from . models import Post, Category
 
 # Create your views here.
 class PostList(ListView) :
     model = Post
     ordering = '-pk'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(PostList, self).get_context_data() #부모가 가지고 있는 것을 상속받는다
+        context['categories'] = Category.objects.all()
+        context['no_category_post_count'] = Post.objects.filter(category=None).count()
+        return context
+
 #    template_name = 'blog/index.html'
 # post_list.html  #(index.html 이름을 post_list.html로 수정)  #template_name을 선언 안 해 주는 방법
 
 class PostDetail(DetailView) :
     model = Post
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(PostDetail, self).get_context_data() #상위에 있는 get_context_data를 가지고 와서 사용하겠다
+        context['categories'] = Category.objects.all()
+        context['no_category_post_count'] = Post.objects.filter(category=None).count()
+        return context
+
 # post_detail.html  #(single_post_page.html 이름을 post_detail.html로 수정)
 
 
