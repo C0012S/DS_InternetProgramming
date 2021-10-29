@@ -1,6 +1,8 @@
 {% extends 'blog/base.html' %}
 {% block main_area %}
-          <h1>Blog</h1>
+          <h1>
+              Blog {% if category %} <span class="badge bg-secondary">{{category}}</span>{% endif %} <!-- Blog만 출력되거나, Blog 뒤에 category 이름이 함께 출력되어서 카테고리 페이지로 두 가지 페이지로 사용할 수 있다 -->
+          </h1>
           {% if post_list.exists %}
           {% for p in post_list %}
           <!-- Blog post-->
@@ -12,7 +14,7 @@
                     alt="random image" />
             {% endif %}
             <div class="card-body">
-                {% if p.category %}
+                {% if p.category %} <!-- p에 있는 category는 Post 데이터에 대한 category, 이 페이지 전체에 적용되고 있는 category가 무엇인지에 대한 값을 의미하고 있는 게 아니다 -->
                     <span class="badge bg-secondary float-right">{{p.category}}</span>
                 {% else %}
                     <span class="badge bg-secondary float-right">미분류</span>

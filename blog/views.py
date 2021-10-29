@@ -28,6 +28,23 @@ class PostDetail(DetailView) :
 
 # post_detail.html  #(single_post_page.html 이름을 post_detail.html로 수정)
 
+def category_page(request, slug):
+    if slug == 'no_category' :
+        category = '미분류' #Category 모델에서 찾지 않고 '미분류' 라는 이름을 전달
+        post_list = Post.objects.filter(category=None)
+    else :
+        category = Category.objects.get(slug=slug) #두 번째에 있는 slug가 함수 인자에서 전달받은 slug / 앞에 있는 것은 (카테고리가 가지고 있는?) field명 #slug와 일치하는 slug에 해당하는 카테고리를 가지고 온다
+        post_list = Post.objects.filter(category=category)
+
+    return render(request, 'blog/post_list.html',
+                  {
+                      'post_list' : post_list, #post_list 변수를 post_list라는 키를 통해서 전달  <-  #Post.objects.filter(category=category), #포스트 중에서 category라는 값이 위에서 선언해 놓은 category(두 번째에 오는 category이다) 값과 같은 포스트만 가지고 와서 포스트에 대한 리스트로 만들어 준다
+                      'categories' : Category.objects.all(), #모든 카테고리에 대한 정보 전달
+                      'no_category_post_count' : Post.objects.filter(category=None).count(), #카테고리가 없는, 미분류되어져 있는 포스트 개수가 몇 개 있는지 값을 저장
+                      'category' : category #현재 카테고리는 무엇인가
+                  }
+                  )
+
 
 # def index(request) :
 #     posts = Post.objects.all().order_by('-pk') #pk의 역순으로 정렬
