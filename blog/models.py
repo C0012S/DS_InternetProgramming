@@ -3,6 +3,15 @@ from django.contrib.auth.models import User #장고가 제공해 주고 있는 U
 import os
 
 # Create your models here.
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=200, unique=True, allow_unicode=True)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return f'/blog/tag/{self.slug}'
 
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -30,6 +39,8 @@ class Post(models.Model):
     author = models.ForeignKey(User, null=True, on_delete=models.SET_NULL) #User가 삭제되었을 때 Post의 author를 NULL 처리 -> author가 NULL이 허용된다는 설정 필요 : null=True  #on_delete=models.CASCADE : User가 삭제되었을 때 Post의 내용도 같이 삭제
 
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL) #blank=True : 처음부터 NULL 값을 넣거나 값을 안 넣게 해 준다
+
+    tags = models.ManyToManyField(Tag, blank=True) #blank=True : null=True처럼 해당되는 값이 없는 걸 나타내는 건 비슷하지만, admin 페이지에서 해당되는 tags라는 폼 자체에 빈 값으로 저장하는 것이 가능하다는 걸 허용해 주는 내용
 
     def __str__(self):
         #return f'[{self.pk}]{self.title}'

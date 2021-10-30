@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 
-from . models import Post, Category
+from . models import Post, Category, Tag
 
 # Create your views here.
 class PostList(ListView) :
@@ -42,6 +42,19 @@ def category_page(request, slug):
                       'categories' : Category.objects.all(), #모든 카테고리에 대한 정보 전달
                       'no_category_post_count' : Post.objects.filter(category=None).count(), #카테고리가 없는, 미분류되어져 있는 포스트 개수가 몇 개 있는지 값을 저장
                       'category' : category #현재 카테고리는 무엇인가
+                  }
+                  )
+
+def tag_page(request, slug):
+    tag = Tag.objects.get(slug=slug) #오른쪽 slug는 url을 통해서 tag 뒤에 오는 slug, url 주소를 통해서 전달받은 slug 값, tag 페이지에 해당되는 파라미터로 전달된 값 #앞에 있는 slug는 Tag 모델 안에 있는 field
+    post_list = tag.post_set.all() # Post.objects.filter(tags=tag) #카테고리는 하나의 값을 가지고 있다 #태그는 카테고리와 달리 다대다 관계이므로 태그에 있는 값이 포스트 안에 다대다 관계로, ManyToMany 형태로 연결되어져 있어서 포스트에 있는 tags라는 field는 하나의 태그가 아니라 여러 개의 태그를 가질 수 있다 -> filter(tags=tag) 통과 불가
+
+    return render(request, 'blog/post_list.html',
+                  {
+                      'post_list' : post_list,
+                      'categories' : Category.objects.all(),
+                      'no_category_post_count' : Post.objects.filter(category=None).count(),
+                      'tag' : tag
                   }
                   )
 

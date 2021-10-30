@@ -37,9 +37,9 @@
                     <div class="row">
                         <ul> <!-- class="list-unstyled mb-0" : bootstrap 불릿 -->
                             {% for c in categories %}
-                                <li><a href="http://127.0.0.1:8000/blog/category/{{c.slug}}">{{c}} ({{c.post_set.count}})</a></li>
+                                <li><a href="c.get_absolute_url">{{c}} ({{c.post_set.count}})</a></li> <!-- 직접적으로 url 줬을 때(절대적인 주소) a href="http://127.0.0.1:8000/blog/category/{{c.slug}}" -->
                             {% endfor %}
-                            <li><a href="http://127.0.0.1:8000/blog/category/no_category">미분류 ({{no_category_post_count}})</a></li>
+                            <li><a href="http://127.0.0.1:8000/blog/category/no_category">미분류 ({{no_category_post_count}})</a></li> <!-- 미분류인 경우, slug 값이 없기 때문에 get_absolute_url을 통해서 url을 만들 수 없다 slug 값이 있어야만 가능 -->
                         </ul>
                     </div>
                   </div>

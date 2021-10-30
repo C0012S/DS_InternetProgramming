@@ -1,7 +1,9 @@
 {% extends 'blog/base.html' %}
 {% block main_area %}
           <h1>
-              Blog {% if category %} <span class="badge bg-secondary">{{category}}</span>{% endif %} <!-- Blog만 출력되거나, Blog 뒤에 category 이름이 함께 출력되어서 카테고리 페이지로 두 가지 페이지로 사용할 수 있다 -->
+              Blog
+              {% if category %} <span class="badge bg-secondary">{{category}}</span>{% endif %} <!-- Blog만 출력되거나, Blog 뒤에 category 이름이 함께 출력되어서 카테고리 페이지로 두 가지 페이지로 사용할 수 있다 -->
+              {% if tag %} <i class="fas fa-tags"></i><span class="badge bg-light">{{tag}}({{tag.post_set.count}})</span>{% endif %} <!-- 태그 페이지 -->
           </h1>
           {% if post_list.exists %}
           {% for p in post_list %}
@@ -24,6 +26,13 @@
                     <h5 class="text-muted"> {{ p.hook_text }} </h5>
                 {% endif %}
                 <p class="card-text">{{ p.content | truncatechars:100 }}</p> <!-- truncatewords:45 --> <!-- truncatewords : 단어 수, truncatechars : 글자 수 -->
+                {% if p.tags.exists %}
+                    <i class="fas fa-tags"></i> <!-- fontawesome에서 icon 추가 -->
+                    {% for tag in p.tags.all %}
+                        <a href="{{tag.get_absolute_url}}"><span class="badge bg-light">{{tag}}</span></a>
+                    {% endfor %}
+                    <br/><br/>
+                {% endif %}
                 <a class="btn btn-primary" href="{{ p.get_absolute_url }}">Read more →</a> <!-- 상세 페이지로 이동 -->
             </div>
             <div class="card-footer">
