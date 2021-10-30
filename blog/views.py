@@ -1,9 +1,21 @@
-from django.shortcuts import render
-from django.views.generic import ListView, DetailView
-
+from django.shortcuts import render, redirect
+from django.views.generic import ListView, DetailView, CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from . models import Post, Category, Tag
 
 # Create your views here.
+class PostCreate(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['title', 'hook_text', 'content', 'head_image', 'file_upload', 'category', 'tags']
+
+    def form_valid(self, form): #장고에서 제공해 주는 함수 재정의 #user에 해당되는 author에 대한 부분을 로그인한 author에 username으로 자동으로 입력되게 한다
+        current_user = self.request.user #이 form을 요청하는 user가 누구인지 확인 #이 클래스에 대해서 request 하고 있는 user가 누군지 파악
+        if current_user.is_authenticated : #허락받은 사용자(user)인지
+            form.instance.author = current_user #비어있는 author field에 지금 로그인한 current_user의 아이디로 로그인한다
+            return super(PostCreate, self).form_valid(form)
+        else : #허가된 로그인한 유저가 아니라면, 이 create_post라고 하는 url을 통해서 접근할 수 없다 #그러면 create_post라고 하는 곳에 접근하지 못하게 해 주려면, 그걸 대신해 줄 수 있는 페이지가 보여져야 한다
+            return redirect('/blog/') #디폴트로 포스트 목록 항목을 보여 준다 #다른 페이지에 대한 내용을 전달하므로 redirect 함수를 이용
+
 class PostList(ListView) :
     model = Post
     ordering = '-pk'
