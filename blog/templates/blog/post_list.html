@@ -1,5 +1,13 @@
 {% extends 'blog/base.html' %}
 {% block main_area %}
+    {% if user.is_authenticated %}
+        {% if user.is_staff or user.is_superuser %}
+            <a class="btn btn-info btn-small float-right" href="/blog/create_post">
+                <i class="fas fa-pen"></i>New Post
+            </a> <!-- class="btn" : button 형태  float-right : 오른쪽에 배치  fas fa-pen : 펜 모양 아이콘(fontawesome) -->
+        {% endif %}
+    {% endif %}
+
           <h1>
               Blog
               {% if category %} <span class="badge bg-secondary">{{category}}</span>{% endif %} <!-- Blog만 출력되거나, Blog 뒤에 category 이름이 함께 출력되어서 카테고리 페이지로 두 가지 페이지로 사용할 수 있다 -->

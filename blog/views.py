@@ -1,16 +1,19 @@
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from . models import Post, Category, Tag
 
 # Create your views here.
-class PostCreate(LoginRequiredMixin, CreateView):
+class PostCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Post
     fields = ['title', 'hook_text', 'content', 'head_image', 'file_upload', 'category', 'tags']
 
+    def test_func(self): #Ture or False 값을 return
+        return self.request.user.is_superuser or self.request.user.is_staff #superuser이거나 staff이면 True -> 이 지금 클래스에 접근할 수 있게끔 하는 함수
+
     def form_valid(self, form): #장고에서 제공해 주는 함수 재정의 #user에 해당되는 author에 대한 부분을 로그인한 author에 username으로 자동으로 입력되게 한다
         current_user = self.request.user #이 form을 요청하는 user가 누구인지 확인 #이 클래스에 대해서 request 하고 있는 user가 누군지 파악
-        if current_user.is_authenticated : #허락받은 사용자(user)인지
+        if current_user.is_authenticated and (current_user.is_staff or current_user.is_superuser) : #로그인되어져 있고, 동시에 superuser 아니면 staff user를 만족해야 한다  #if current_user.is_authenticated : #허락받은 사용자(user)인지
             form.instance.author = current_user #비어있는 author field에 지금 로그인한 current_user의 아이디로 로그인한다
             return super(PostCreate, self).form_valid(form)
         else : #허가된 로그인한 유저가 아니라면, 이 create_post라고 하는 url을 통해서 접근할 수 없다 #그러면 create_post라고 하는 곳에 접근하지 못하게 해 주려면, 그걸 대신해 줄 수 있는 페이지가 보여져야 한다

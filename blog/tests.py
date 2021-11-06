@@ -9,6 +9,8 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         self.client = Client()
 
         self.user_james = User.objects.create_user(username='James', password='somepassword')
+        self.user_james.is_staff = True #staff status
+        self.user_james.save()
         self.user_trump = User.objects.create_user(username='Trump', password='somepassword')
 
         self.category_programming = Category.objects.create(name='programming', slug='programming')
@@ -101,10 +103,15 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         # 포스트 목록 페이지를 가져온다
         response = self.client.get('/blog/create_post/')
         self.assertNotEqual(response.status_code, 200) #로그인을 하지 않은 상태에서 접근하면, 200이라는 코드를 받으면 안 된다
-        self.client.login(username='Trump', password='somepassword') #로그인이 되어야지만 create_post에 접근할 수 있다
+        self.client.login(username='Trump', password='somepassword') #로그인이 되어야지만 create_post에 접근할 수 있다 #-> 일반 User Trump
         response = self.client.get('/blog/create_post/')
-        # 정상적으로 페이지가 로드
+        # 정상적으로 페이지가 로드 #-> Trump는 더 이상 staff에 대한 권한을 가지고 있지 않기 때문에 create_post에 대한 접근을 했을 때, 200이라는 값을 가지면 안 된다
+        self.assertNotEqual(response.status_code, 200) #self.assertEqual(response.status_code, 200)
+
+        self.client.login(username='James', password='somepassword')
+        response = self.client.get('/blog/create_post/')
         self.assertEqual(response.status_code, 200)
+
         # 페이지 타이틀 'Blog'
         soup = BeautifulSoup(response.content, 'html.parser')
         self.assertEqual(soup.title.text, 'Create Post - Blog')
@@ -118,7 +125,7 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
                          })
         last_post = Post.objects.last() #포스트에 있는 마지막 레코드
         self.assertEqual(last_post.title, "Post form 만들기") #create_post에 의해서 submit이 올바르게 됐다면, last_post는 위에서 만든 포스트가 될 것이다
-        self.assertEqual(last_post.author.username, 'Trump') #로그인을 해 둔 username과 동일한 이름으로 마지막 포스트의 author 이름이 들어가 있는지 확인
+        self.assertEqual(last_post.author.username, 'James') #'Trump') #로그인을 해 둔 username과 동일한 이름으로 마지막 포스트의 author 이름이 들어가 있는지 확인
 
     def test_post_list(self):
         self.assertEqual(Post.objects.count(), 3) #3개의 목록이 있는지 테스트
