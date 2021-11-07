@@ -127,6 +127,42 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         self.assertEqual(last_post.title, "Post form 만들기") #create_post에 의해서 submit이 올바르게 됐다면, last_post는 위에서 만든 포스트가 될 것이다
         self.assertEqual(last_post.author.username, 'James') #'Trump') #로그인을 해 둔 username과 동일한 이름으로 마지막 포스트의 author 이름이 들어가 있는지 확인
 
+    def test_update_post(self): #어떤 User가 update_post에 접근하는지에 따라 3 개로 분리해서 test code 작성 #get, post에 대한 사용을 분리해서 사용
+        update_url = f'/blog/update_post/{self.post_003.pk}/' #url 주소 맞지 않으면 403이 아닌 301 오류
+        # 로그인하지 않은 경우
+        response = self.client.get(update_url) #'/blog/update_post/{self.post_003.pk}')
+        self.assertNotEqual(response.status_code, 200) #정상적으로 로드되어지면 안 된다
+
+        # 로그인 했지만 작성자가 아닌 경우
+        self.assertNotEqual(self.post_003.author, self.user_james)
+        self.client.login(username='James', password='somepassword')
+        response = self.client.get(update_url)
+        self.assertEqual(response.status_code, 403) # 403 : forbidden (접근 권한 금지) #접근이 불가능한 status code : 403
+
+        # 작성자가 로그인해서 접근한 경우  #로그인 했지만 작성자가 접근하는 경우
+        self.client.login(username='Trump', password='somepassword')
+        response = self.client.get(update_url)
+        self.assertEqual(response.status_code, 200) #정상적으로 접근이 된다
+
+        # 수정 페이지  #제대로 수정 페이지가 보여지고 있는지에 대한 테스트
+        soup = BeautifulSoup(response.content, 'html.parser')
+        self.assertEqual(soup.title.text, 'Edit Post - Blog')
+        main_area = soup.find('div', id='main-area')
+        self.assertIn('Edit Post', main_area.text) #main_area에 Edit Post를 담고 있는가의 형태로 수정 페이지가 올바르게 로드되었는가를 확인
+
+        # 실제 수정 후 확인  #-> 수정한 이후에 데이터베이스에 반영했을 때, 그 반영된 내용이 올바르게 수정된 값이 저장되었는가  #수정 페이지에 수정한 내용들이 올바르게 반영되고 있는가
+        response = self.client.post(update_url,
+                         {
+                             'title' : '세 번째 포스트 수정',
+                             'content' : '안녕? 우리는 하나/... 반가와요',
+                             'category' : self.category_culture.pk #category_culture만 넣어 주면 안 되고, 이에 대한 Primary Key인 pk를 넣어 줘야 한다
+                         }, follow=True) #이렇게 수정된 내용을 전달하고, 그 전달된 값에 대해서 응답을 받을 것이다 #client 입장에서는 이 해당되는 내용을 가지고서 update_url을 따라가서 그 결과를 반영하겠다는 부분이기 때문에 follow는 True로 값을 설정 #정정된 내용을 가지고서, 다시 우리가 해당되는, 반영된, 업데이트로 수정되어져 있는 값에 대해서 처리한 결과를 response로 받는다
+        soup = BeautifulSoup(response.content, 'html.parser')
+        main_area = soup.find('div', id='main-area')
+        self.assertIn('세 번째 포스트 수정', main_area.text)
+        self.assertIn('안녕? 우리는 하나/... 반가와요', main_area.text)
+        self.assertIn(self.category_culture.name, main_area.text) #카테고리에 대한 값을 포함하고 있는가를 봐야 한다 #값을 전달할 때는 뒤에 pk라고 하는 값을 전달하지만, 화면에 출력될 때는 그 pk(Primary Key)에 해당되는 카테고리의 이름이 출력되고 있기 때문에, 출력을 확인할 때는 category_culture.name으로 이름이 출력되고 있는가를 확인
+
     def test_post_list(self):
         self.assertEqual(Post.objects.count(), 3) #3개의 목록이 있는지 테스트
 

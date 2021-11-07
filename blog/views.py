@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from . models import Post, Category, Tag
+from django.core.exceptions import PermissionDenied
 
 # Create your views here.
 class PostCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -18,6 +19,18 @@ class PostCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             return super(PostCreate, self).form_valid(form)
         else : #허가된 로그인한 유저가 아니라면, 이 create_post라고 하는 url을 통해서 접근할 수 없다 #그러면 create_post라고 하는 곳에 접근하지 못하게 해 주려면, 그걸 대신해 줄 수 있는 페이지가 보여져야 한다
             return redirect('/blog/') #디폴트로 포스트 목록 항목을 보여 준다 #다른 페이지에 대한 내용을 전달하므로 redirect 함수를 이용
+
+class PostUpdate(LoginRequiredMixin, UpdateView): # 모델명_form #으로 되어져 있는 템플릿 이름을 사용 -> 작성 페이지 템플릿과 이름이 동일하기 때문에 자동으로 설정되고 있는 템플릿 이름을 사용할 수 없다 -> 템플릿을 별도로 선언해 줘야 한다  #로그인한 User만 접근할 수 있는 페이지이기 때문에 파라미터 LoginRequiredMixin 추가
+    model = Post #모델 선언
+    fields = ['title', 'hook_text', 'content', 'head_image', 'file_upload', 'category', 'tags']
+
+    template_name = 'blog/post_update_form.html'
+
+    def dispatch(self, request, *args, **kwargs): #dispatch : 장고에서 get으로 접근했는지, post로 접근했는지 구별해 주는 함수 제공
+        if request.user.is_authenticated and request.user == self.get_object().author : #작성자가 접근해야지만 접근 가능 #로그인되어져 있고 실제 작성자에 해당되는 author 하고 같은 User가 request 했다면
+            return super(PostUpdate, self).dispatch(request, *args, **kwargs) #작성자가 요구하는 경우에만 dispatch를 통해서 PostUpdate에 접근
+        else :
+            raise PermissionDenied #예외 상황 발생
 
 class PostList(ListView) :
     model = Post
