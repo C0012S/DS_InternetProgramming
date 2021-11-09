@@ -41,6 +41,7 @@ urlpatterns = [
     path('blog/', include('blog.urls')),     # 서버IP/blog #blog app에 urls.py 생성
     path('admin/', admin.site.urls),    # 서버IP/admin
     path('', include('single_pages.urls')),     # 서버IP/
+    path('markdownx/', include('markdownx.urls'))
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)     # 서버IP/media/  #head_image 사용을 위해 추가 #myInternetPrj/settings.py에 import os, MEDIA_URL = '/media/', MEDIA_ROOT = os.path.join(BASE_DIR, '_media') 추가

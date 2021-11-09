@@ -1,18 +1,21 @@
 {% extends 'blog/base_full_width.html' %} <!-- base.html : 한 쪽에 form, 한 쪽에는 Search와 Categroy --> <!-- base_full_width.html : Search와 Category 없이 form이 grid 전부 차지 -->
-
+{% load crispy_forms_tags %}
 {% block head_title %}Create Post - Blog{% endblock %}
 {% block main_area %}
     <h1>Create New Post</h1>
     <hr /> <!-- 수평선 -->
     <form method="post" enctype="multipart/form-data"> <!-- action에 대한 부분은 django 자체에서 해결해 주므로 별도로 action 속성을 넣을 필요 없다 -->
         {% csrf_token %} <!-- django인 경우, form에 대해서 csrf라고 하는 공격으로부터 보호해 준다 반드시 넣어 줘야 한다 -->
-        <table>
-            {{form}} <!-- form에는 views.py에 선언해 놓은 title부터 category까지 해당되는 내용을 담고 있다 -->
-            <tr>
-                <th><label for="id_tags_str">Tags:</label></th> <!-- label의 for는 input의 id와 연결되는 부분 -->
-                <td><input type="text" name="tags_str" maxlength="30" required id="id_tags_str"></td>
-            </tr>
-        </table>
+
+            {{form | crispy}} <!-- form에는 views.py에 선언해 놓은 title부터 category까지 해당되는 내용을 담고 있다 -->
+            <div id="div_id_tags_str">
+                <label for="id_tags_str">Tags:</label> <!-- label의 for는 input의 id와 연결되는 부분 -->
+                <input type="text" name="tags_str" required id="id_tags_str"
+                    class="textinput textInput form-control">
+            </div>
+            <br>
+
         <button type="submit" class="btn btn-primary float-right">Submit</button>
     </form>
+    {{form.media}}
 {% endblock %}

@@ -33,7 +33,7 @@
                 {% if p.hook_text %}
                     <h5 class="text-muted"> {{ p.hook_text }} </h5>
                 {% endif %}
-                <p class="card-text">{{ p.content | truncatechars:100 }}</p> <!-- truncatewords:45 --> <!-- truncatewords : 단어 수, truncatechars : 글자 수 -->
+                <p class="card-text">{{ p.get_content_markdown | truncatewords_html:50 | safe }}</p> <!-- truncatewords:45 --> <!-- truncatewords : 단어 수, truncatechars : 글자 수 -->  <!-- {{ p.content | truncatechars:100 }} -> p.get_content_markdown -> content의 내용을 markdown으로 변환시켜 주는 markdown이라고 하는 함수를 호출하는 형태 -->
                 {% if p.tags.exists %}
                     <i class="fas fa-tags"></i> <!-- fontawesome에서 icon 추가 -->
                     {% for tag in p.tags.all %}
