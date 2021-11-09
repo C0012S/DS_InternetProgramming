@@ -118,14 +118,23 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         main_area = soup.find('div', id='main-area')
         self.assertIn('Create New Post', main_area.text)
 
+        tag_str_input = main_area.find('input', id='id_tags_str') #tag 입력을 받기 위한 input이 존재하는가 확인 -> 이런 input 태그 있으면 해당되는 input 태그 값을, 없으면 null 값 전달
+        self.assertTrue(tag_str_input) #tag_str_input이 True인가, null이 아닌가를 테스트해 봄으로써 input 태그가 있는지 확인
+
         self.client.post('/blog/create_post/',
                          {
                              'title' : 'Post form 만들기',
-                             'content' : "Post form 페이지 만들기"
+                             'content' : "Post form 페이지 만들기",
+                             'tags_str' : 'new tag; 한글태그, python' #태그 구별: ;(세미콜론), ,(콤마)
                          })
         last_post = Post.objects.last() #포스트에 있는 마지막 레코드
         self.assertEqual(last_post.title, "Post form 만들기") #create_post에 의해서 submit이 올바르게 됐다면, last_post는 위에서 만든 포스트가 될 것이다
         self.assertEqual(last_post.author.username, 'James') #'Trump') #로그인을 해 둔 username과 동일한 이름으로 마지막 포스트의 author 이름이 들어가 있는지 확인
+
+        self.assertEqual(last_post.tags.count(), 3) #3 개의 태그가 잘 입력되었는지 확인
+        self.assertTrue(Tag.objects.get(name='new tag')) #Tag라고 하는 모델의 object에서 get을 이용해 이름이 new tag인 태그를 가지고 있는지 확인 -> 가지고 있으면 True, new tag가 Tag 모델에 등록되지 않았다면 False
+        self.assertTrue(Tag.objects.get(name='한글태그')) #python 태그는 이미 Tag라는 모델에 등록되어져 있기 때문에 별도로 있는지 확인하지 않는다(setUp에서 만들어 두었다)
+        self.assertEqual(Tag.objects.count(), 5) #Tag 안에 실제로 등록되어져 있는 태그의 개수가 총 5 개인지 확인
 
     def test_update_post(self): #어떤 User가 update_post에 접근하는지에 따라 3 개로 분리해서 test code 작성 #get, post에 대한 사용을 분리해서 사용
         update_url = f'/blog/update_post/{self.post_003.pk}/' #url 주소 맞지 않으면 403이 아닌 301 오류
@@ -150,18 +159,27 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         main_area = soup.find('div', id='main-area')
         self.assertIn('Edit Post', main_area.text) #main_area에 Edit Post를 담고 있는가의 형태로 수정 페이지가 올바르게 로드되었는가를 확인
 
+        tag_str_input = main_area.find('input', id='id_tags_str')
+        self.assertTrue(tag_str_input)
+        self.assertIn('파이썬 공부; python', tag_str_input.attrs['value']) #기존에 있던 포스트가 가지고 있는 태그 값을 가지고 있는지 확인 #'python, 파이썬 공부' 이 2 개의 내용이 실제 post_003이 가지고 있는 거와 input 태그에 있는 'value' attribute에 들어가 있는 내용과, 2 개의 내용이 지금 포함하고 있는지 확인
+
         # 실제 수정 후 확인  #-> 수정한 이후에 데이터베이스에 반영했을 때, 그 반영된 내용이 올바르게 수정된 값이 저장되었는가  #수정 페이지에 수정한 내용들이 올바르게 반영되고 있는가
         response = self.client.post(update_url,
                          {
                              'title' : '세 번째 포스트 수정',
                              'content' : '안녕? 우리는 하나/... 반가와요',
-                             'category' : self.category_culture.pk #category_culture만 넣어 주면 안 되고, 이에 대한 Primary Key인 pk를 넣어 줘야 한다
+                             'category' : self.category_culture.pk, #category_culture만 넣어 주면 안 되고, 이에 대한 Primary Key인 pk를 넣어 줘야 한다
+                             'tags_str' : '파이썬 공부; 한글 태그; some tag'
                          }, follow=True) #이렇게 수정된 내용을 전달하고, 그 전달된 값에 대해서 응답을 받을 것이다 #client 입장에서는 이 해당되는 내용을 가지고서 update_url을 따라가서 그 결과를 반영하겠다는 부분이기 때문에 follow는 True로 값을 설정 #정정된 내용을 가지고서, 다시 우리가 해당되는, 반영된, 업데이트로 수정되어져 있는 값에 대해서 처리한 결과를 response로 받는다
         soup = BeautifulSoup(response.content, 'html.parser')
         main_area = soup.find('div', id='main-area')
         self.assertIn('세 번째 포스트 수정', main_area.text)
         self.assertIn('안녕? 우리는 하나/... 반가와요', main_area.text)
         self.assertIn(self.category_culture.name, main_area.text) #카테고리에 대한 값을 포함하고 있는가를 봐야 한다 #값을 전달할 때는 뒤에 pk라고 하는 값을 전달하지만, 화면에 출력될 때는 그 pk(Primary Key)에 해당되는 카테고리의 이름이 출력되고 있기 때문에, 출력을 확인할 때는 category_culture.name으로 이름이 출력되고 있는가를 확인
+        self.assertIn('파이썬 공부', main_area.text)
+        self.assertIn('한글 태그', main_area.text)
+        self.assertIn('some tag', main_area.text)
+        self.assertNotIn('python', main_area.text)
 
     def test_post_list(self):
         self.assertEqual(Post.objects.count(), 3) #3개의 목록이 있는지 테스트
