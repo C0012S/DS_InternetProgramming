@@ -41,6 +41,7 @@ urlpatterns = [
     path('blog/', include('blog.urls')),     # 서버IP/blog #blog app에 urls.py 생성
     path('admin/', admin.site.urls),    # 서버IP/admin
     path('', include('single_pages.urls')),     # 서버IP/
+    path('accounts/', include('allauth.urls')),
     path('markdownx/', include('markdownx.urls'))
 ]
 
