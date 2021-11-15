@@ -65,41 +65,22 @@
                     <div class="mb-5" id="comment-area">
                         <div class="card bg-light">
                             <div class="card-body">
-                                <!-- Comment form-->
+                                <!-- Comment form--> <!-- Comment를 입력할 수 있는 부분 -->
                                 <form class="mb-4"><textarea class="form-control" rows="3" placeholder="Join the discussion and leave a comment!"></textarea></form>
-                                <!-- Comment with nested comments-->
-                                <div class="d-flex mb-4">
-                                    <!-- Parent comment-->
-                                    <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..." /></div>
-                                    <div class="ms-3">
-                                        <div class="fw-bold">Commenter Name</div>
-                                        If you're going to lead a space frontier, it has to be government; it'll never be private enterprise. Because the space frontier is dangerous, and it's expensive, and it has unquantified risks.
-                                        <!-- Child comment 1-->
-                                        <div class="d-flex mt-4">
-                                            <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..." /></div>
-                                            <div class="ms-3">
-                                                <div class="fw-bold">Commenter Name</div>
-                                                And under those conditions, you cannot establish a capital-market evaluation of that enterprise. You can't get investors.
-                                            </div>
-                                        </div>
-                                        <!-- Child comment 2-->
-                                        <div class="d-flex mt-4">
-                                            <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..." /></div>
-                                            <div class="ms-3">
-                                                <div class="fw-bold">Commenter Name</div>
-                                                When you put money directly to a problem, it makes a good headline.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+
+                                {% if post.comment_set.exists %} <!-- Post에는 comment라는 field가 없고, Comment에는 post라는 field가 있다. Comment 입장에서 해당되는 Post에 포함되고 있는 Comment에 대한 내용, 데이터를 다 모으는 것은 모델명 뒤에 _set을 붙인다. comment라는 모델 중에서 해당되는 post의 값을 가지고 있는 comment들을 모아서 가지고 오라는 의미이다. 여기에 대해서 그렇게 가져온 모든 comment들에 대해서 처리하겠다는 것이다. -->
+                                {% for comment in post.comment_set.all %}
                                 <!-- Single comment-->
-                                <div class="d-flex">
+                                <div class="d-flex" id="comment-{{comment.pk}}">
                                     <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..." /></div>
                                     <div class="ms-3">
-                                        <div class="fw-bold">Commenter Name</div>
-                                        When I look at the universe and all the ways the universe wants to kill us, I find it hard to reconcile that with statements of beneficence.
+                                        <div class="fw-bold">{{comment.author.username}} &nbsp;&nbsp;&nbsp;
+                                            <small class="text-muted">{{comment.created_at}}</small></div>
+                                        <p>{{comment.content | linebreaks}}</p> <!-- filter : linebreaks 줄바꿈 표시가 되어져 있는 것은 html 문서로 바꿀 때도 줄바꿈 표시를 반영해서 문서를 만드는 필터 -->
                                     </div>
                                 </div>
+                                {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
                     </div>

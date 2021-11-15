@@ -59,3 +59,15 @@ class Post(models.Model):
 
     def get_content_markdown(self):
         return markdown(self.content) #마크다운으로 변환 #기존의 작성해 준 텍스트를 html 문서로 바꿔 주는 과정을 거침
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE) #하나의 포스트에 여러 개의 댓글 : 다대일 관계
+    author = models.ForeignKey(User, on_delete=models.CASCADE) #한 명의 User가 여러 개의 Comment를 넣을 수 있는 다대일 관계
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True) #작성 시간
+
+    def __str__(self):
+        return f'{self.author}::{self.content}'
+
+    def get_absolute_url(self): #Comment 모델에 대해서 값을 요구했을 때, 그 값을 요구할 수 있는 url에 대한 정의
+        return f'{self.post.get_absolute_url()}#comment-{self.pk}'

@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import User
-from .models import Post, Category, Tag
+from .models import Post, Category, Tag, Comment
 
 # Create your tests here.
 class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pip list
@@ -41,6 +41,12 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         )
         self.post_003.tags.add(self.tag_python)
         self.post_003.tags.add(self.tag_python_kor)
+
+        self.comment_001 = Comment.objects.create(
+            post = self.post_001,
+            author = self.user_trump,
+            content = '첫 번째 댓글입니다.'
+        )
 
     def navbar_test(self, soup):
         # 네비게이션바가 있다  # 포스트목록과 같은 네비게이션바가 있는가
@@ -271,3 +277,8 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
         self.assertIn(self.post_001.content, post_area.text)
 
         self.assertIn(self.user_james.username.upper(), post_area.text)
+
+        comments_area = soup.find('div', id='comment-area')
+        comment_001_area = comments_area.find('div', id='comment-1') #comment-pk #지금 comment는 하나밖에 없으므로 comment_001 같은 경우 pk 값은 1
+        self.assertIn(self.comment_001.author.username, comment_001_area.text)
+        self.assertIn(self.comment_001.content, comment_001_area.text) #댓글 내용이 comment_001_area.text 문구 안에 포함되어져 있는가를 확인 #html 문서 안에, comment 영역 안에 comment가 올바르게 출력되고 있는가를 테스트
