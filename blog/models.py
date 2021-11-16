@@ -49,7 +49,7 @@ class Post(models.Model):
         return f'[{self.pk}]{self.title} :: {self.author}'
 
     def get_absolute_url(self): #self는 레코드 자기 자신을 의미하는 것
-        return f'/blog/{self.pk}'
+        return f'/blog/{self.pk}/'
 
     def get_file_name(self): #file 이름에 대한 부분 return
         return os.path.basename(self.file_upload.name)

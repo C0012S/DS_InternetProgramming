@@ -1,4 +1,5 @@
 {% extends 'blog/base.html' %}
+{% load crispy_forms_tags %}
 {% block head_title %}
     {{ post.title }} - Blog
 {% endblock %}
@@ -65,12 +66,24 @@
                     <div class="mb-5" id="comment-area">
                         <div class="card bg-light">
                             <div class="card-body">
-                                <!-- Comment form--> <!-- Comment를 입력할 수 있는 부분 -->
-                                <form class="mb-4"><textarea class="form-control" rows="3" placeholder="Join the discussion and leave a comment!"></textarea></form>
+                                <!-- Comment form-->  <!-- Comment를 입력할 수 있는 부분 -->
+                                {% if user.is_authenticated %}
+                                <form class="mb-4" id="comment-form" method="POST" action="{{post.get_absolute_url}}new_comment/"> <!-- form 안에 있는 내용을 전달할 때는 get, post 중 어떤 방법을 이용? -> post 방법 이용 : method="POST"  #comment가 올바르게 등록이 되었다면, 보여지는 페이지는 그 댓글이 추가되어져 있는 상세 페이지가 다시 보여져야 된다 -> 이 경우에 action attribute에 이동해 줄 url 주소({{post.get_absolute_url}}, 지금 보고 있는 포스트 상세 페이지에 대한 이 포스트가 가지고 있는 get_absolute_url, 해당되는 포스트의 상세 페이지를 연결)를 넣는다 -->
+                                    {% csrf_token %} <!-- form을 사용할 때 반드시 추가해 줘야 되는 것 : {% csrf_token %} -->
+                                    <div class="form-group">
+                                        {{comment_form | crispy}}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit</button> <!-- action을 실행하기 위해서는 submit 버튼이 있어야 한다 -->
+                                </form>
+                                {% else %}
+                                <a role="button" class="btn btn-outline-dark" href="#"
+                                data-toggle="modal" data-target="#loginModal"
+                                >Log in and leave a comment</a>
+                                {% endif %}
 
                                 {% if post.comment_set.exists %} <!-- Post에는 comment라는 field가 없고, Comment에는 post라는 field가 있다. Comment 입장에서 해당되는 Post에 포함되고 있는 Comment에 대한 내용, 데이터를 다 모으는 것은 모델명 뒤에 _set을 붙인다. comment라는 모델 중에서 해당되는 post의 값을 가지고 있는 comment들을 모아서 가지고 오라는 의미이다. 여기에 대해서 그렇게 가져온 모든 comment들에 대해서 처리하겠다는 것이다. -->
                                 {% for comment in post.comment_set.all %}
-                                <!-- Single comment-->
+                                <!-- Single comment-->  <!-- 댓글을 보여 주는 부분 -->
                                 <div class="d-flex" id="comment-{{comment.pk}}">
                                     <div class="flex-shrink-0"><img class="rounded-circle" src="https://dummyimage.com/50x50/ced4da/6c757d.jpg" alt="..." /></div>
                                     <div class="ms-3">

@@ -4,8 +4,26 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from . models import Post, Category, Tag
 from django.core.exceptions import PermissionDenied
 from django.utils.text import slugify
+from .forms import CommentForm
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
+def new_comment(request, pk):
+    if request.user.is_authenticated:
+        post = get_object_or_404(Post, pk=pk) #Primary Key가 파라미터로 전달받은 pk와 일치하는 데이터를 가지고 온다 #옳지 않은 pk면 404
+        if request.method == 'POST' : #request가 POST 방식으로 들어왔는지 확인 #comment에 대한 url에 접근하는 것이 계수로도 접근할 수 있고, POST로도 접근할 수 있는데, 새로운 comment를 입력한 다음에 그 입력된 comment를 가지고 접근하는 경우는 POST로 접근한다
+            comment_form = CommentForm(request.POST)
+            if comment_form.is_valid() :
+                comment = comment_form.save(commit=False) #만들어지고 있는 form이 바로 모델에 등록돼서 저장되는 걸 막기 위해 commit=False
+                comment.post = post
+                comment.author = request.user
+                comment.save()
+                return redirect(comment.get_absolute_url())
+        else :
+            return redirect(post.get_absolute_url()) #comment는 안 붙고 상세 페이지를 보여 준다
+    else :
+        raise PermissionDenied #예외 발생
+
 class PostCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Post
     fields = ['title', 'hook_text', 'content', 'head_image', 'file_upload', 'category'] #, 'tags'] #field 부분에 있는 내용들은 form에서 가지고 와서 쓰겠다고 하는 내용 -> 더 이상 Django가 제공해 주고 있는 form 형태로 tags를 쓰지 않고 재정의할 것이므로 tags를 지운다
@@ -92,6 +110,7 @@ class PostDetail(DetailView) :
         context = super(PostDetail, self).get_context_data() #상위에 있는 get_context_data를 가지고 와서 사용하겠다
         context['categories'] = Category.objects.all()
         context['no_category_post_count'] = Post.objects.filter(category=None).count()
+        context['comment_form'] = CommentForm #CommentForm 내용을 사용할 수 있다
         return context
 
 # post_detail.html  #(single_post_page.html 이름을 post_detail.html로 수정)

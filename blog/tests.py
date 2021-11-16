@@ -48,6 +48,47 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
             content = '첫 번째 댓글입니다.'
         )
 
+    def test_comment_form(self):
+        self.assertEqual(Comment.objects.count(), 1)
+        self.assertEqual(self.post_001.comment_set.count(), 1) #Post의 입장에서 Comment가 추가되어져 있는 역관계를 의미해 주는 그런 관계를 표시해 주기 위해서 모델 뒤에 _set을 붙인다
+
+        # 로그인 하지 않은 상태 #상세 페이지에는 올바르게 접근할 수 있지만, comment form은 존재하지 않고 'Log in and leave a comment'와 같은 안내 문구만 포함하고 있는지 확인
+        response = self.client.get(self.post_001.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        comment_area = soup.find('div', id='comment-area')
+        self.assertIn('Log in and leave a comment', comment_area.text)
+        self.assertFalse(comment_area('form', id='comment-form')) #comment 영역에 comment form이 있다는 것이 거짓이어야 한다 = 없다는 의미
+
+        # 로그인 한 상태
+        self.client.login(username='Trump', password='somepassword')
+        response = self.client.get(self.post_001.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        comment_area = soup.find('div', id='comment-area')
+        self.assertNotIn('Log in and leave a comment', comment_area.text)
+        comment_form = comment_area.find('form', id='comment-form')
+        self.assertTrue(comment_form.find('textarea', id='id_content')) #comment_form에서 find한 것(textarea)을 찾는 것이 True라는 건 이 'textarea'라는 태그를 찾았다는 의미
+
+        response = self.client.post( #새로운 comment 추가 #client를 통해서 서버에 접근할 때, 기존의 상세 페이지 접근 방식은 GET 방식 #이제는 comment라는 내용을 가지고서 접근하기 때문에 POST 방식으로 접근
+            self.post_001.get_absolute_url() + 'new_comment/', #어떤 사이트에 접근할 것인가에 대한 url 주소가 있어야 한다
+            { #추가하는 comment에 대한 부분은, 여기에서는 content에 대한 값만 전달
+                'content' : "두 번째 댓글입니다."
+            },
+            follow=True #client에 접속할 때, 이렇게 데이터 값에 접속할 때는, 하나 더 추가를 하자면 follow에 대한 부분을 True로 설정
+        ) #client에 접속 #POST 방식으로 content라고 하는 부분의 값을 가지고 있는 comment를 추가
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Comment.objects.count(), 2)
+        self.assertEqual(self.post_001.comment_set.count(), 2)
+
+        new_comment = Comment.objects.last() #추가한 comment가 html 문서 안에 잘 나타나고 있는가를 확인 #Comment 모델에서 있는 object들 중에서 가장 마지막에 있는 comment를 가지고 온다
+        soup = BeautifulSoup(response.content, 'html.parser')
+        self.assertIn(new_comment.post.title, soup.title.text) #new_comment가 가지고 있는 post의 title에 대한 내용이 soup으로 되어져 있는 파싱한 문서의 title에 포함되어져 있는가를 text로 확인
+        comment_area = soup.find('div', id='comment-area')
+        new_comment_div = comment_area.find('div', id=f'comment-{new_comment.pk}')
+        self.assertIn('Trump', new_comment_div.text) #작성자 Trump의 이름이 출력되고 있는지 확인 #new_comment_div 태그에 있는 text에 포함되고 있는지 확인
+        self.assertIn('두 번째 댓글입니다.', new_comment_div.text)
+
     def navbar_test(self, soup):
         # 네비게이션바가 있다  # 포스트목록과 같은 네비게이션바가 있는가
         navbar = soup.nav
@@ -251,8 +292,8 @@ class TestView(TestCase): #python manage.py test #pip install beautifulsoup4 #pi
     def test_post_detail(self):
         # 포스트 하나 생성 -> setUp에서 생성
 
-        # 이 포스트의 url이 /blog/1
-        self.assertEqual(self.post_001.get_absolute_url(), '/blog/1')
+        # 이 포스트의 url이 /blog/1  #-> models의 Post에서 f'/blog/{self.pk}'를 f'/blog/{self.pk}/'로 수정 -> /blog/1/
+        self.assertEqual(self.post_001.get_absolute_url(), '/blog/1/')
         # url에 의해 정상적으로 상세페이지를 불러오는가
         response = self.client.get('/blog/1/')
         self.assertEqual(response.status_code, 200)
