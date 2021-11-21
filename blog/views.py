@@ -93,6 +93,7 @@ class PostUpdate(LoginRequiredMixin, UpdateView): # 모델명_form #으로 되�
 class PostList(ListView) :
     model = Post
     ordering = '-pk'
+    paginate_by = 5 #페이지네이션 하고 싶은 개수
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(PostList, self).get_context_data() #부모가 가지고 있는 것을 상속받는다
