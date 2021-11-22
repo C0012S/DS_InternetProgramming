@@ -10,6 +10,7 @@
 
           <h1>
               Blog
+              {% if search_info %} <span class="badge bg-secondary">{{search_info}}</span>{% endif %}
               {% if category %} <span class="badge bg-secondary">{{category}}</span>{% endif %} <!-- Blog만 출력되거나, Blog 뒤에 category 이름이 함께 출력되어서 카테고리 페이지로 두 가지 페이지로 사용할 수 있다 -->
               {% if tag %} <i class="fas fa-tags"></i><span class="badge bg-light">{{tag}}({{tag.post_set.count}})</span>{% endif %} <!-- 태그 페이지 -->
           </h1>

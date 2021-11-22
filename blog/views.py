@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.utils.text import slugify
 from .forms import CommentForm
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 # Create your views here.
 def new_comment(request, pk):
@@ -115,6 +116,23 @@ class PostDetail(DetailView) :
         return context
 
 # post_detail.html  #(single_post_page.html 이름을 post_detail.html로 수정)
+
+class PostSearch(PostList) :
+    paginate_by = None
+
+    def get_queryset(self):
+        q = self.kwargs['q'] #검색어를 가져온다
+        post_list = Post.objects.filter( #검색된 결과 저장
+            Q(title__contains=q) | Q(tags__name__contains=q) #해당되는 Query를 가지고서 db에서 내가 원하는 데이터를 찾는다
+        ).distinct() #검색어인 경우 title과 tag에 대한 내용만 추가 #distinct : 중복 제거하고 하나만 사용
+        return post_list
+
+    def get_context_data(self, **kwargs):
+        context = super(PostSearch, self).get_context_data()
+        q = self.kwargs['q']
+        context['search_info'] = f'Search : {q}({self.get_queryset().count()})' #서치된 결과를 넣어 준다
+
+        return context
 
 def category_page(request, slug):
     if slug == 'no_category' :
