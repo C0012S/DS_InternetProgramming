@@ -71,3 +71,9 @@ class Comment(models.Model):
 
     def get_absolute_url(self): #Comment 모델에 대해서 값을 요구했을 때, 그 값을 요구할 수 있는 url에 대한 정의
         return f'{self.post.get_absolute_url()}#comment-{self.pk}'
+
+    def get_avatar_url(self):
+        if self.author.socialaccount_set.exists() : #해당되는 social account가 있는지  #self.author.socialaccount_set.first().get_avatar_url() : #social 계정을 이용해서 로그인한 사람인 경우
+            return self.author.socialaccount_set.first().get_avatar_url() #author가 가지고 있는 social account 중에서 제일 첫 번째 해당되는 social account에 아바타 url을 가지고 와서 화면에 보여 준다 - url 주소를 가지고 오는 부분
+        else : #social account가 없는 경우
+            return 'https://doitdjango.com/avatar/id/388/92773eb7c5ee4554/svg/{self.author.email}/'  #'http://placehold.it/50x50' #placehold에 있는 회색 이미지 출력
