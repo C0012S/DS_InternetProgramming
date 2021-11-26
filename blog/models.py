@@ -60,6 +60,12 @@ class Post(models.Model):
     def get_content_markdown(self):
         return markdown(self.content) #마크다운으로 변환 #기존의 작성해 준 텍스트를 html 문서로 바꿔 주는 과정을 거침
 
+    def get_avatar_url(self):
+        if self.author.socialaccount_set.exists() :
+            return self.author.socialaccount_set.first().get_avatar_url()
+        else :
+            return 'https://doitdjango.com/avatar/id/388/92773eb7c5ee4554/svg/{self.author.email}/'
+
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE) #하나의 포스트에 여러 개의 댓글 : 다대일 관계
     author = models.ForeignKey(User, on_delete=models.CASCADE) #한 명의 User가 여러 개의 Comment를 넣을 수 있는 다대일 관계
